@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link } from 'react-router-dom'
 import { Activity, ShieldAlert, List, LogOut } from 'lucide-react'
-import Dashboard from './components/Dashboard'
-import LogViewer from './components/LogViewer'
-import Alerts from './components/Alerts'
+import Dashboard from './pages/Dashboard'
+import LogViewer from './pages/LogViewer'
+import Alerts from './pages/Alerts'
 import axios from 'axios'
 
-// Setup Axios globally outside the component so it runs immediately on page load
 axios.defaults.baseURL = 'http://localhost:8080'
 const token = localStorage.getItem('token')
 if (token) {
@@ -43,7 +42,7 @@ function Login({ setAuth }: { setAuth: (val: boolean) => void }) {
           <input className="mb-4 w-full rounded border p-2" type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
           <button className="w-full rounded bg-blue-600 p-2 text-white hover:bg-blue-700" type="submit">Login</button>
         </form>
-        <p className="mt-4 text-sm text-gray-500">Hint: admin/admin123 or viewer/viewer123</p>
+        <p className="mt-4 text-sm text-gray-500">welcome to log manager</p>
       </div>
     </div>
   )

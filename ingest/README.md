@@ -10,7 +10,7 @@ The system natively supports two real-time ingestion protocols, fulfilling the m
 ### 1. HTTP JSON API (Port 8080)
 - **Endpoint:** `POST /ingest`
 - **Location:** `/backend/ingest.go`
-- **Behavior:** Accepts raw JSON payloads. It maps deeply nested fields (such as AWS CloudTrail's `cloud.account_id`) and standardizes them into the common `LogEntry` schema. 
+- **Behavior:** Accepts raw JSON payloads. It maps deeply nested fields and standardizes them into the common `LogEntry` schema. 
 - **Usage:** Ideal for CrowdStrike, Microsoft 365, AWS CloudTrail, and Microsoft AD logs.
 
 ### 2. UDP Syslog (Port 514)
@@ -21,6 +21,27 @@ The system natively supports two real-time ingestion protocols, fulfilling the m
 ## The Normalization Pipeline
 Regardless of which protocol receives the data, all logs undergo normalization before hitting the storage layer. 
 
-1. **Timestamp Standardization:** Time formats are parsed and strictly converted to UTC `YYYY-MM-DD HH:MM:SS` strings to guarantee accurate range queries in SQLite.
+### Normalization Steps:
+1. **Timestamp Standardization:** Time formats (like `RFC3339`) are parsed and strictly converted to UTC `YYYY-MM-DD HH:MM:SS` strings to guarantee accurate range queries in SQLite.
 2. **Schema Mapping:** Source-specific fields (like `mac` in a network log or `ip` in a login log) are mapped to standard columns (`host` and `src_ip`).
-3. **Raw Preservation:** The original, unadulterated message payload is always preserved in the `raw` JSON column for auditing purposes.
+3. **Raw Preservation:** The original, unadulterated message payload is always preserved in the `raw` JSON column for strict auditing and compliance purposes.
+
+### Example Mapping (AWS CloudTrail)
+**Incoming Raw JSON:**
+```json
+{
+  "tenant": "demoB",
+  "source": "aws",
+  "cloud": {"service": "iam", "account_id": "123456789012", "region": "ap-southeast-1"},
+  "event_type": "CreateUser"
+}
+```
+
+**Normalized Database Record:**
+- `tenant` -> `demoB`
+- `source` -> `aws`
+- `cloud_service` -> `iam`
+- `cloud_account_id` -> `123456789012`
+- `cloud_region` -> `ap-southeast-1`
+- `event_type` -> `CreateUser`
+- `raw` -> *(The exact JSON string above)*
