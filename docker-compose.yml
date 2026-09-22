@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: log-manager-backend
+    ports:
+      - "8080:8080" # API
+      - "514:514/udp" # Syslog
+    volumes:
+      - backend_data:/app/data
+    environment:
+      - PORT=8080
+      - DB_PATH=/app/data/logs.db
+      - JWT_SECRET=supersecretjwtkey_change_in_prod
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: log-manager-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend_data:
